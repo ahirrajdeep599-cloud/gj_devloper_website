@@ -196,20 +196,30 @@ if (!global._gj_sqlite_db) {
     // Column already exists
   }
 
-  // 1. Seed default admin if none exists
-  const existingAdmin = global._gj_sqlite_db
-    .prepare("SELECT * FROM admins WHERE username = ? OR email = ?")
-    .get("admin", "admin@gjdevloper.com");
+  // 1. Seed primary admin from secure environment variables
+  const adminUsername = (process.env.ADMIN_USERNAME || "admin").trim();
+  const adminEmail = (process.env.ADMIN_EMAIL || "admin@gjdevloper.com").trim();
+  const adminPassword = process.env.ADMIN_DEFAULT_PASSWORD;
 
-  if (!existingAdmin) {
-    const defaultPassword = process.env.ADMIN_DEFAULT_PASSWORD || "admin123";
-    const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync(defaultPassword, salt);
-    global._gj_sqlite_db
-      .prepare(
-        "INSERT OR IGNORE INTO admins (email, username, password_hash) VALUES (?, ?, ?)"
-      )
-      .run("admin@gjdevloper.com", "admin", hash);
+  if (adminUsername && adminPassword) {
+    // Remove legacy default 'admin' account if a custom ADMIN_USERNAME is configured
+    if (adminUsername !== "admin") {
+      global._gj_sqlite_db.prepare("DELETE FROM admins WHERE username = 'admin'").run();
+    }
+
+    const existingAdmin = global._gj_sqlite_db
+      .prepare("SELECT id FROM admins WHERE username = ?")
+      .get(adminUsername) as { id: number } | undefined;
+
+    if (!existingAdmin) {
+      const salt = bcrypt.genSaltSync(10);
+      const hash = bcrypt.hashSync(adminPassword, salt);
+      global._gj_sqlite_db
+        .prepare(
+          "INSERT OR IGNORE INTO admins (email, username, password_hash) VALUES (?, ?, ?)"
+        )
+        .run(adminEmail, adminUsername, hash);
+    }
   }
 
   // 2. Seed default settings if empty

@@ -15,6 +15,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://gjwebdevloper.vercel.app";
+
 export const viewport: Viewport = {
   themeColor: "#030712",
   width: "device-width",
@@ -38,14 +40,17 @@ export const metadata: Metadata = {
     "high conversion e-commerce",
     "UI/UX design systems",
   ],
-  authors: [{ name: "GJ Devloper", url: "https://gjdevloper.com" }],
+  authors: [{ name: "GJ Devloper", url: SITE_URL }],
   creator: "GJ Devloper",
   publisher: "GJ Devloper",
-  metadataBase: new URL("https://gjdevloper.com"),
+  metadataBase: new URL(SITE_URL),
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://gjdevloper.com",
+    url: SITE_URL,
     siteName: "GJ Devloper",
     title: "GJ Devloper | We Build Digital Experiences That Grow Businesses",
     description:
@@ -78,6 +83,9 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
+    : undefined,
 };
 
 export default function RootLayout({
@@ -89,10 +97,10 @@ export default function RootLayout({
     "@context": "https://schema.org",
     "@type": "ProfessionalService",
     name: "GJ Devloper",
-    image: "https://gjdevloper.com/og-image.jpg",
+    image: `${SITE_URL}/og-image.jpg`,
     description:
       "Professional web development agency engineering world-class 3D web experiences, full-stack web applications, and high-performance digital platforms.",
-    url: "https://gjdevloper.com",
+    url: SITE_URL,
     telephone: "+1-800-GJ-DEV",
     priceRange: "$$$$",
     address: {

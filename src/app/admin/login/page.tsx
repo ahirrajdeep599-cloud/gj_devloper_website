@@ -89,7 +89,7 @@ export default function AdminLoginPage() {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="admin"
+                placeholder="Enter username"
                 className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-950/80 border border-white/10 text-white placeholder-slate-500 focus:outline-none focus:border-sky-400 text-sm"
               />
             </div>
@@ -122,10 +122,6 @@ export default function AdminLoginPage() {
           >
             {loading ? "Authenticating..." : "Access Dashboard"}
           </Button>
-
-          <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 text-[11px] font-mono text-slate-400 text-center mt-4">
-            Default credentials: <span className="text-sky-300">admin</span> / <span className="text-sky-300">admin123</span>
-          </div>
         </form>
       </div>
     </div>
