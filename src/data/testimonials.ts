@@ -1,0 +1,48 @@
+import { Testimonial } from "@/types";
+
+export const testimonialsData: Testimonial[] = [
+  {
+    id: "1",
+    quote: "Working with GJ Devloper was the single best technical decision we made in 2025. They took our clunky legacy SaaS and re-architected it into an ultra-fast, 3D-infused flagship product. Our enterprise conversion rate skyrocketed by 280% within 45 days of launch.",
+    clientName: "Marcus Vance",
+    clientRole: "Chief Technology Officer",
+    clientCompany: "Nexus Intelligence (Silicon Valley)",
+    projectScope: "Full-Stack Web App & 3D Interactive Terminal",
+    rating: 5,
+    avatar: "MV",
+    location: "San Francisco, USA",
+  },
+  {
+    id: "2",
+    quote: "GJ Devloper doesn't build ordinary websites—they construct world-class digital art that sells. Our luxury jewelry buyers expect perfection, and the real-time 3D diamond customizer they engineered feels like touching real jewelry on screen. Flawless execution.",
+    clientName: "Elena Rostova",
+    clientRole: "Managing Director",
+    clientCompany: "Aura Atelier Milano",
+    projectScope: "3D Luxury E-Commerce & Customizer",
+    rating: 5,
+    avatar: "ER",
+    location: "Milan, Italy",
+  },
+  {
+    id: "3",
+    quote: "I have worked with dozens of top agencies in London and New York. None matched the speed, architectural clarity, and design taste of GJ Devloper. The speed score is 99 on mobile, zero bugs, and our investors were blown away during our Series A demo.",
+    clientName: "David Sterling",
+    clientRole: "Founder & CEO",
+    clientCompany: "Pulse Capital Partners",
+    projectScope: "FinTech Terminal & Investor Dashboard",
+    rating: 5,
+    avatar: "DS",
+    location: "London, UK",
+  },
+  {
+    id: "4",
+    quote: "In an industry full of agencies that overpromise and deliver broken templates, GJ Devloper stands in a category of their own. Direct senior communication, immaculate code quality, and delivered two weeks ahead of schedule.",
+    clientName: "Dr. Anya Chen",
+    clientRole: "VP of Product",
+    clientCompany: "Verdant BioSynthetics",
+    projectScope: "Interactive Brand & Scientific Portal",
+    rating: 5,
+    avatar: "AC",
+    location: "Zurich, Switzerland",
+  },
+];
