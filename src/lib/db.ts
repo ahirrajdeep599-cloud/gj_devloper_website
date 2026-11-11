@@ -1,12 +1,17 @@
 import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
+import os from "os";
 import bcrypt from "bcryptjs";
 import { gjServices } from "@/data/services";
 import { sampleProjectsData } from "@/data/projects";
 
-// Ensure data directory exists
-const dataDir = path.join(process.cwd(), "data");
+// Ensure data directory exists (Use /tmp on Vercel/Serverless to avoid EROFS read-only filesystem error)
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const dataDir = isServerless
+  ? path.join(os.tmpdir(), "data")
+  : path.join(process.cwd(), "data");
+
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
@@ -20,7 +25,11 @@ declare global {
 
 if (!global._gj_sqlite_db) {
   global._gj_sqlite_db = new Database(dbPath, { timeout: 10000 });
-  global._gj_sqlite_db.pragma("journal_mode = WAL");
+  if (isServerless) {
+    global._gj_sqlite_db.pragma("journal_mode = MEMORY");
+  } else {
+    global._gj_sqlite_db.pragma("journal_mode = WAL");
+  }
   global._gj_sqlite_db.pragma("busy_timeout = 10000");
 
   global._gj_sqlite_db.exec(`
