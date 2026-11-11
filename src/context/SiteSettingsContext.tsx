@@ -23,12 +23,16 @@ export interface ServiceItem {
   number: string;
   title: string;
   category: string;
-  short_description: string;
+  short_description?: string;
+  shortDescription?: string;
   deliverables: string[];
-  starting_price: string;
-  icon_type: string;
+  starting_price?: string;
+  startingPrice?: string;
+  icon_type?: string;
+  iconType?: string;
   badge: string;
-  whatsapp_preset: string;
+  whatsapp_preset?: string;
+  whatsappPreset?: string;
   gradient?: string;
   is_active?: boolean;
 }
@@ -36,21 +40,28 @@ export interface ServiceItem {
 export interface PortfolioItem {
   id: string;
   title: string;
-  clientBadge: string;
-  serviceCategory: string;
-  isSample: boolean;
-  sampleNotice: string;
+  clientBadge?: string;
+  client_badge?: string;
+  serviceCategory?: string;
+  service_category?: string;
+  isSample?: boolean;
+  sampleNotice?: string;
+  sample_notice?: string;
   summary: string;
   description: string;
   challenge?: string;
   solution?: string;
-  metrics: { value: string; label: string }[];
-  techStack: string[];
-  gradient: string;
+  metrics?: { value: string; label: string }[];
+  techStack?: string[];
+  tech_stack?: string[];
+  gradient?: string;
   accentColor?: string;
-  previewMockupType: string;
+  previewMockupType?: string;
+  preview_type?: string;
   demoUrl?: string;
-  whatsappPrompt: string;
+  demo_url?: string;
+  whatsappPrompt?: string;
+  whatsapp_prompt?: string;
 }
 
 interface SiteSettingsContextType {
@@ -104,7 +115,7 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
   const fetchAllData = useCallback(async () => {
     try {
       // 1. Fetch Settings
-      const resSettings = await fetch("/api/settings");
+      const resSettings = await fetch("/api/settings", { cache: "no-store" });
       if (resSettings.ok) {
         const data = await resSettings.json();
         if (data.settings && Object.keys(data.settings).length > 0) {
@@ -113,7 +124,7 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
       }
 
       // 2. Fetch Pricing Plans
-      const resPricing = await fetch("/api/pricing");
+      const resPricing = await fetch("/api/pricing", { cache: "no-store" });
       if (resPricing.ok) {
         const data = await resPricing.json();
         if (data.plans && data.plans.length > 0) {
@@ -122,7 +133,7 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
       }
 
       // 3. Fetch Services
-      const resServices = await fetch("/api/services");
+      const resServices = await fetch("/api/services", { cache: "no-store" });
       if (resServices.ok) {
         const data = await resServices.json();
         if (data.services && data.services.length > 0) {
@@ -131,7 +142,7 @@ export function SiteSettingsProvider({ children }: { children: React.ReactNode }
       }
 
       // 4. Fetch Portfolio
-      const resPortfolio = await fetch("/api/portfolio");
+      const resPortfolio = await fetch("/api/portfolio", { cache: "no-store" });
       if (resPortfolio.ok) {
         const data = await resPortfolio.json();
         if (data.projects && data.projects.length > 0) {

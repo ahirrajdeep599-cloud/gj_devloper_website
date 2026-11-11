@@ -1,18 +1,18 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { PortfolioSampleProject } from "@/data/projects";
 import { X, MessageSquare } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
-import { getWhatsAppDirectUrl } from "@/lib/whatsapp";
+import { PortfolioItem, useSiteSettings } from "@/context/SiteSettingsContext";
 
 interface ProjectModalProps {
-  project: PortfolioSampleProject | null;
+  project: PortfolioItem | null;
   onClose: () => void;
 }
 
 export default function ProjectModal({ project, onClose }: ProjectModalProps) {
+  const { getWhatsAppUrl } = useSiteSettings();
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -29,7 +29,9 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
 
   if (!project) return null;
 
-  const whatsappHref = getWhatsAppDirectUrl(project.whatsappPrompt);
+  const whatsappHref = getWhatsAppUrl(
+    project.whatsappPrompt || `Hi, I'm interested in a project like ${project.title}.`
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
@@ -76,7 +78,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
 
           {/* Key Impact Metrics Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-5 rounded-2xl bg-slate-950/60 border border-white/10">
-            {project.metrics.map((res, i) => (
+            {(project.metrics || []).map((res, i) => (
               <div key={i} className="text-center sm:text-left">
                 <div className="text-2xl sm:text-3xl font-extrabold text-white font-mono text-gradient-electric">
                   {res.value}
@@ -117,7 +119,7 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
               Technologies Deployed In This Build:
             </h4>
             <div className="flex flex-wrap gap-2">
-              {project.techStack.map((tag) => (
+              {(project.techStack || []).map((tag) => (
                 <span
                   key={tag}
                   className="px-3 py-1.5 rounded-lg bg-white/[0.05] border border-white/10 text-xs font-mono text-slate-200"

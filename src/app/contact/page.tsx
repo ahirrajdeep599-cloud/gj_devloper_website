@@ -7,7 +7,8 @@ import Footer from "@/components/layout/Footer";
 import BackgroundParticles from "@/components/3d/BackgroundParticles";
 import SectionHeader from "@/components/ui/SectionHeader";
 import FloatingWhatsApp from "@/components/ui/FloatingWhatsApp";
-import { formatWhatsAppInquiryMessage, getWhatsAppDirectUrl } from "@/lib/whatsapp";
+import { formatWhatsAppInquiryMessage } from "@/lib/whatsapp";
+import { useSiteSettings } from "@/context/SiteSettingsContext";
 import { 
   Mail, 
   MessageSquare, 
@@ -20,6 +21,9 @@ import {
 } from "lucide-react";
 
 export default function ContactPage() {
+  const { settings, getWhatsAppUrl } = useSiteSettings();
+  const contactEmail = settings.contact_email || "contact@gjdevloper.com";
+  const agencyName = settings.agency_name || "GJ Devloper";
   const [formData, setFormData] = useState({
     name: "",
     whatsappNumber: "",
@@ -59,7 +63,7 @@ export default function ContactPage() {
       source: "Contact Page Portal",
     });
 
-    const url = getWhatsAppDirectUrl(message);
+    const url = getWhatsAppUrl(message);
     setLastWaUrl(url);
 
     try {
@@ -157,7 +161,7 @@ export default function ContactPage() {
 
                 <div className="space-y-4 pt-4 border-t border-white/10">
                   <a
-                    href={getWhatsAppDirectUrl("Hi GJ Devloper, I'm reaching out from the contact page.")}
+                    href={getWhatsAppUrl(`Hi ${agencyName}, I'm reaching out from the contact page.`)}
                     target="_blank"
                     rel="noreferrer"
                     className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between hover:bg-emerald-500/20 transition-all group"
@@ -171,7 +175,7 @@ export default function ContactPage() {
                           WhatsApp Priority Line
                         </div>
                         <div className="text-sm font-semibold text-white">
-                          Click to Chat Instant
+                          {settings.contact_phone || "Click to Chat Instant"}
                         </div>
                       </div>
                     </div>
@@ -179,7 +183,7 @@ export default function ContactPage() {
                   </a>
 
                   <a
-                    href="mailto:contact@gjdevloper.com"
+                    href={`mailto:${contactEmail}`}
                     className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-between hover:border-sky-500/40 hover:bg-slate-900 transition-all group"
                   >
                     <div className="flex items-center gap-3">
@@ -191,7 +195,7 @@ export default function ContactPage() {
                           Official Email
                         </div>
                         <div className="text-sm font-semibold text-white">
-                          contact@gjdevloper.com
+                          {contactEmail}
                         </div>
                       </div>
                     </div>

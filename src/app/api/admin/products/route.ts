@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from "@/lib/db";
 import { getCurrentAdmin } from "@/lib/auth";
+import { getSupabaseAdmin } from "@/lib/supabaseServer";
+import {
+  formatSupabaseProduct,
+  resolveSupabaseCategoryId,
+  SupabaseProductRow,
+} from "@/lib/supabaseCatalog";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +35,28 @@ export async function GET() {
   }
 
   try {
-    const products = db.prepare("SELECT * FROM products ORDER BY sort_order ASC, id DESC").all() as DBProductRow[];
+    const sb = getSupabaseAdmin();
+    if (sb) {
+      const { data, error } = await sb
+        .from("products")
+        .select("*, categories(name, slug)")
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: false });
+
+      if (!error && Array.isArray(data)) {
+        return NextResponse.json(
+          {
+            success: true,
+            products: data.map((p) => formatSupabaseProduct(p as SupabaseProductRow)),
+          },
+          { headers: { "Cache-Control": "no-store, max-age=0" } }
+        );
+      }
+    }
+
+    const products = db
+      .prepare("SELECT * FROM products ORDER BY sort_order ASC, id DESC")
+      .all() as DBProductRow[];
     const formatted = products.map((p) => ({
       ...p,
       features: typeof p.features === "string" ? JSON.parse(p.features) : p.features || [],
@@ -65,10 +92,49 @@ export async function POST(req: NextRequest) {
     } = body;
 
     if (!name || !price || !image_url) {
-      return NextResponse.json({ error: "Product name, price, and image URL are required." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Product name, price, and image URL are required." },
+        { status: 400 }
+      );
     }
 
-    const slug = (body.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")) + `-${Date.now().toString().slice(-4)}`;
+    const slug =
+      (body.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")) +
+      `-${Date.now().toString().slice(-4)}`;
+
+    const sb = getSupabaseAdmin();
+    if (sb) {
+      const categoryId = await resolveSupabaseCategoryId(category);
+      const { data, error } = await sb
+        .from("products")
+        .insert({
+          name: name.trim(),
+          slug,
+          category_id: categoryId,
+          description: description?.trim() || name.trim(),
+          price: Number(price) || 0,
+          original_price: original_price ? Number(original_price) : null,
+          image_url: image_url.trim(),
+          in_stock: Boolean(in_stock),
+          stock_quantity: Number(stock_quantity) || 0,
+          badge: badge?.trim() || "",
+          features: Array.isArray(features) ? features : [],
+          sort_order: Number(sort_order) || 0,
+          is_active: true,
+        })
+        .select("*, categories(name, slug)")
+        .single();
+
+      if (error) {
+        console.error("[Supabase Admin Product Create Error]:", error);
+        return NextResponse.json({ error: "Failed to create product in Supabase" }, { status: 500 });
+      }
+
+      return NextResponse.json(
+        { success: true, product: formatSupabaseProduct(data as SupabaseProductRow) },
+        { status: 201 }
+      );
+    }
 
     const stmt = db.prepare(`
       INSERT INTO products (

@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import Badge from "@/components/ui/Badge";
 import { Product, Order, OrderStatus } from "@/types";
+import { useSiteSettings } from "@/context/SiteSettingsContext";
 
 interface Inquiry {
   id: number;
@@ -92,6 +93,7 @@ interface PortfolioProject {
 
 export default function AdminDashboardPage() {
   const router = useRouter();
+  const { refreshSettings } = useSiteSettings();
 
   // Navigation State
   const [activeTab, setActiveTab] = useState<
@@ -158,7 +160,7 @@ export default function AdminDashboardPage() {
     setLoading(true);
     try {
       // 1. Inquiries
-      const resInq = await fetch("/api/inquiries");
+      const resInq = await fetch("/api/inquiries", { cache: "no-store" });
       if (resInq.status === 401) {
         router.push("/admin/login");
         return;
@@ -167,7 +169,7 @@ export default function AdminDashboardPage() {
       if (dataInq.success) setInquiries(dataInq.inquiries || []);
 
       // 2. Settings
-      const resSet = await fetch("/api/settings");
+      const resSet = await fetch("/api/settings", { cache: "no-store" });
       if (resSet.ok) {
         const dataSet = await resSet.json();
         if (dataSet.settings) {
@@ -186,42 +188,42 @@ export default function AdminDashboardPage() {
       }
 
       // 3. Pricing Plans (fetch all including inactive for admin)
-      const resPlans = await fetch("/api/pricing?all=true");
+      const resPlans = await fetch("/api/pricing?all=true", { cache: "no-store" });
       if (resPlans.ok) {
         const dataPlans = await resPlans.json();
         if (dataPlans.plans) setPlans(dataPlans.plans);
       }
 
       // 4. Services (fetch all including inactive)
-      const resSvc = await fetch("/api/services?all=true");
+      const resSvc = await fetch("/api/services?all=true", { cache: "no-store" });
       if (resSvc.ok) {
         const dataSvc = await resSvc.json();
         if (dataSvc.services) setServices(dataSvc.services);
       }
 
       // 5. Portfolio
-      const resPort = await fetch("/api/portfolio");
+      const resPort = await fetch("/api/portfolio", { cache: "no-store" });
       if (resPort.ok) {
         const dataPort = await resPort.json();
         if (dataPort.projects) setProjects(dataPort.projects);
       }
 
       // 6. Admin Profile
-      const resProfile = await fetch("/api/admin/profile");
+      const resProfile = await fetch("/api/admin/profile", { cache: "no-store" });
       if (resProfile.ok) {
         const dataProfile = await resProfile.json();
         if (dataProfile.admin) setProfileEmail(dataProfile.admin.email || "");
       }
 
       // 7. Store Products
-      const resProd = await fetch("/api/admin/products");
+      const resProd = await fetch("/api/admin/products", { cache: "no-store" });
       if (resProd.ok) {
         const dataProd = await resProd.json();
         if (dataProd.products) setProducts(dataProd.products);
       }
 
       // 8. E-Commerce Orders
-      const resOrders = await fetch("/api/admin/orders");
+      const resOrders = await fetch("/api/admin/orders", { cache: "no-store" });
       if (resOrders.ok) {
         const dataOrders = await resOrders.json();
         if (dataOrders.orders) setOrders(dataOrders.orders);
@@ -263,6 +265,7 @@ export default function AdminDashboardPage() {
           whatsapp_number: fullNumber,
           whatsapp_country_code: countryCode,
         }));
+        void refreshSettings();
         showToast(`WhatsApp number updated to ${countryCode} ${phoneDigits} across the entire website!`);
       } else {
         showToast("Error updating WhatsApp number.");
@@ -294,6 +297,7 @@ export default function AdminDashboardPage() {
         showToast(isNew ? "New pricing plan created!" : "Pricing plan updated!");
         setEditingPlan(null);
         fetchData();
+        void refreshSettings();
       } else {
         showToast("Failed to save pricing plan.");
       }
@@ -309,6 +313,7 @@ export default function AdminDashboardPage() {
       const res = await fetch(`/api/pricing/${id}`, { method: "DELETE" });
       if (res.ok) {
         setPlans((prev) => prev.filter((p) => p.id !== id));
+        void refreshSettings();
         showToast("Plan deleted.");
       }
     } catch {
@@ -336,6 +341,7 @@ export default function AdminDashboardPage() {
         showToast(isNew ? "New service offering added!" : "Service updated!");
         setEditingService(null);
         fetchData();
+        void refreshSettings();
       } else {
         showToast("Failed to save service.");
       }
@@ -351,6 +357,7 @@ export default function AdminDashboardPage() {
       const res = await fetch(`/api/services/${id}`, { method: "DELETE" });
       if (res.ok) {
         setServices((prev) => prev.filter((s) => s.id !== id));
+        void refreshSettings();
         showToast("Service deleted.");
       }
     } catch {
@@ -370,6 +377,7 @@ export default function AdminDashboardPage() {
       });
       if (res.ok) {
         setSettings((prev) => ({ ...prev, ...contentForm }));
+        void refreshSettings();
         showToast("Website content updated! Changes live on homepage.");
       } else {
         showToast("Failed to update content.");
@@ -474,7 +482,7 @@ export default function AdminDashboardPage() {
   };
 
   // DELETE PRODUCT
-  const handleDeleteProduct = async (id: number) => {
+  const handleDeleteProduct = async (id: string | number) => {
     if (!confirm("Are you sure you want to delete this product?")) return;
     try {
       const res = await fetch(`/api/admin/products/${id}`, { method: "DELETE" });
@@ -508,7 +516,7 @@ export default function AdminDashboardPage() {
   };
 
   // 7. UPDATE ORDER STATUS
-  const handleUpdateOrderStatus = async (orderId: number, newStatus: OrderStatus) => {
+  const handleUpdateOrderStatus = async (orderId: string | number, newStatus: OrderStatus) => {
     try {
       const res = await fetch(`/api/admin/orders/${orderId}`, {
         method: "PATCH",
@@ -529,7 +537,7 @@ export default function AdminDashboardPage() {
   };
 
   // SAVE ADMIN ORDER NOTES
-  const handleSaveAdminOrderNotes = async (orderId: number, notes: string) => {
+  const handleSaveAdminOrderNotes = async (orderId: string | number, notes: string) => {
     try {
       const res = await fetch(`/api/admin/orders/${orderId}`, {
         method: "PATCH",

@@ -3,6 +3,11 @@ import db from "@/lib/db";
 import { sendMetaCloudApiMessage, formatWhatsAppInquiryMessage } from "@/lib/whatsapp";
 import { getCurrentAdmin } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rateLimit";
+import {
+  getSupabaseInquiries,
+  saveSupabaseInquiries,
+  StoredInquiryItem,
+} from "@/lib/supabaseCatalog";
 
 export const dynamic = "force-dynamic";
 
@@ -63,29 +68,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 5. Parameterized SQL Insert
-    const stmt = db.prepare(`
-      INSERT INTO inquiries (
-        customer_name, 
-        whatsapp_number, 
-        website_type, 
-        budget, 
-        project_description, 
-        status, 
-        whatsapp_sent_status,
-        source
-      ) VALUES (?, ?, ?, ?, ?, 'New', 'Pending', 'Web Inquiry')
-    `);
-
-    const result = stmt.run(
-      cleanName,
-      cleanPhone,
-      cleanType,
-      cleanBudget,
-      cleanDesc
-    );
-
-    const inquiryId = result.lastInsertRowid;
+    let inquiryId: number | bigint = Date.now();
+    let whatsappStatus = "Pending";
 
     // Optional: Alert notification to agency admin WhatsApp phone
     const adminPhone = process.env.ADMIN_WHATSAPP_PHONE;
@@ -105,8 +89,36 @@ export async function POST(req: NextRequest) {
       });
 
       if (apiResult.success) {
-        db.prepare("UPDATE inquiries SET whatsapp_sent_status = 'Sent' WHERE id = ?").run(inquiryId);
+        whatsappStatus = "Sent";
       }
+    }
+
+    const sbInquiries = await getSupabaseInquiries();
+    if (sbInquiries) {
+      const nextId =
+        sbInquiries.length > 0 ? Math.max(...sbInquiries.map((i) => Number(i.id) || 0)) + 1 : 1;
+      inquiryId = nextId;
+      const newInquiry: StoredInquiryItem = {
+        id: nextId,
+        customer_name: cleanName,
+        whatsapp_number: cleanPhone,
+        website_type: cleanType,
+        budget: cleanBudget,
+        project_description: cleanDesc,
+        status: "New",
+        whatsapp_sent_status: whatsappStatus,
+        source: "Web Inquiry",
+        created_at: new Date().toISOString(),
+      };
+      await saveSupabaseInquiries([newInquiry, ...sbInquiries]);
+    } else {
+      const stmt = db.prepare(`
+        INSERT INTO inquiries (
+          customer_name, whatsapp_number, website_type, budget, project_description, status, whatsapp_sent_status, source
+        ) VALUES (?, ?, ?, ?, ?, 'New', ?, 'Web Inquiry')
+      `);
+      const result = stmt.run(cleanName, cleanPhone, cleanType, cleanBudget, cleanDesc, whatsappStatus);
+      inquiryId = result.lastInsertRowid;
     }
 
     return NextResponse.json({
@@ -131,6 +143,14 @@ export async function GET() {
   }
 
   try {
+    const sbInquiries = await getSupabaseInquiries();
+    if (sbInquiries) {
+      return NextResponse.json(
+        { success: true, inquiries: sbInquiries },
+        { headers: { "Cache-Control": "no-store, max-age=0" } }
+      );
+    }
+
     const inquiries = db.prepare("SELECT * FROM inquiries ORDER BY created_at DESC").all();
     return NextResponse.json({ success: true, inquiries });
   } catch {

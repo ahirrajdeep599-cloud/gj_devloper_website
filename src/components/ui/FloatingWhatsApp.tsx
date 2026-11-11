@@ -2,9 +2,11 @@
 
 import React, { useState } from "react";
 import { MessageSquare, X, Send, CheckCircle2 } from "lucide-react";
-import { getWhatsAppDirectUrl } from "@/lib/whatsapp";
+import { useSiteSettings } from "@/context/SiteSettingsContext";
 
 export default function FloatingWhatsApp() {
+  const { settings, getWhatsAppUrl } = useSiteSettings();
+  const agencyName = settings.agency_name || "GJ Devloper";
   const [isOpen, setIsOpen] = useState(false);
   const [quickService, setQuickService] = useState("Business Website Development");
   const [clientName, setClientName] = useState("");
@@ -29,13 +31,13 @@ export default function FloatingWhatsApp() {
 ${quickNote ? `📝 *Note:* ${quickNote}\n` : ""}────────────────────────
 Hi GJ Devloper, I'm reaching out from your website to get a quote!`;
 
-    const url = getWhatsAppDirectUrl(message);
+    const url = getWhatsAppUrl(message);
     window.open(url, "_blank");
     setIsOpen(false);
   };
 
-  const defaultDirectUrl = getWhatsAppDirectUrl(
-    "Hi GJ Devloper, I'm visiting your website and would like to inquire about your web development services."
+  const defaultDirectUrl = getWhatsAppUrl(
+    `Hi ${agencyName}, I'm visiting your website and would like to inquire about your web development services.`
   );
 
   return (
@@ -52,7 +54,7 @@ Hi GJ Devloper, I'm reaching out from your website to get a quote!`;
               </div>
               <div>
                 <h4 className="font-bold text-sm flex items-center gap-1.5">
-                  <span>GJ Devloper</span>
+                  <span>{agencyName}</span>
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-200" />
                 </h4>
                 <p className="text-[11px] text-emerald-100 flex items-center gap-1">

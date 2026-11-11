@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import SectionHeader from "@/components/ui/SectionHeader";
 import Button from "@/components/ui/Button";
-import { getWhatsAppDirectUrl } from "@/lib/whatsapp";
+import { useSiteSettings } from "@/context/SiteSettingsContext";
 import { 
   Cpu, 
   Zap, 
@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 export default function BuiltWithCodeSection() {
+  const { settings, getWhatsAppUrl } = useSiteSettings();
   const terminalSteps = [
     { label: "Thinking & Scoping", text: "Turning Ideas Into Reality...", status: "active" },
     { label: "Design Architecture", text: "Designing High-Fidelity UI & 3D Shaders...", status: "pending" },
@@ -86,8 +87,8 @@ export default function BuiltWithCodeSection() {
     },
   ];
 
-  const ctaWhatsAppUrl = getWhatsAppDirectUrl(
-    "Hi GJ Devloper, I have an idea for a web project and saw your 'Built with Code' workflow. Let's build it together!"
+  const ctaWhatsAppUrl = getWhatsAppUrl(
+    `Hi ${settings.agency_name || "GJ Devloper"}, I have an idea for a web project and saw your 'Built with Code' workflow. Let's build it together!`
   );
 
   return (
@@ -200,10 +201,11 @@ export default function BuiltWithCodeSection() {
               Ready to execute?
             </span>
             <h3 className="text-2xl sm:text-3xl font-extrabold text-white mb-2">
-              Have an Idea? Let&apos;s Build It!
+              {settings.cta_heading || "Have an Idea? Let's Build It!"}
             </h3>
             <p className="text-sm text-slate-300">
-              From initial sketch to high-speed digital reality, let&apos;s bring your vision to life.
+              {settings.cta_subtitle ||
+                "From initial sketch to high-speed digital reality, let's bring your vision to life."}
             </p>
           </div>
 

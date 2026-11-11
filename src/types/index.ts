@@ -61,7 +61,7 @@ export interface TechItem {
 }
 
 export interface Product {
-  id: number;
+  id: string | number;
   name: string;
   slug: string;
   category: string;
@@ -93,7 +93,7 @@ export type OrderStatus =
   | "Cancelled";
 
 export interface OrderItem {
-  id: number;
+  id: string | number;
   name: string;
   price: number;
   quantity: number;
@@ -101,7 +101,7 @@ export interface OrderItem {
 }
 
 export interface Order {
-  id: number;
+  id: string | number;
   order_number: string;
   customer_name: string;
   customer_phone: string;

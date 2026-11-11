@@ -6,6 +6,7 @@ import { ArrowRight, Sparkles, Code2 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
 import CodeEditorVisual from "@/components/ui/CodeEditorVisual";
+import { useSiteSettings } from "@/context/SiteSettingsContext";
 
 // Dynamically import the 3D Canvas with ssr: false for flawless client-side WebGL rendering
 const HeroSphereCanvas = dynamic(
@@ -25,6 +26,13 @@ interface HeroSectionProps {
 }
 
 export default function HeroSection({}: HeroSectionProps) {
+  const { settings } = useSiteSettings();
+  const heroHeading = settings.hero_heading || "WE CODE. WE CREATE. WE BUILD DIGITAL EXPERIENCES.";
+  const isDefaultHeading = heroHeading.trim() === "WE CODE. WE CREATE. WE BUILD DIGITAL EXPERIENCES.";
+  const heroSubtitle =
+    settings.hero_subtitle ||
+    "From creative ideas to powerful digital solutions, GJ Devloper transforms businesses through modern web development.";
+
   return (
     <section className="relative min-h-[95vh] pt-32 pb-20 flex items-center justify-center overflow-hidden">
       {/* Background radial ambient lights */}
@@ -63,14 +71,20 @@ export default function HeroSection({}: HeroSectionProps) {
 
             {/* Main Headline */}
             <h1 className="text-4xl sm:text-5xl lg:text-5xl xl:text-6xl font-black tracking-tight text-white leading-[1.1] mb-6">
-              WE CODE. <br />
-              <span className="text-gradient-primary">WE CREATE.</span> <br />
-              WE BUILD DIGITAL EXPERIENCES.
+              {isDefaultHeading ? (
+                <>
+                  WE CODE. <br />
+                  <span className="text-gradient-primary">WE CREATE.</span> <br />
+                  WE BUILD DIGITAL EXPERIENCES.
+                </>
+              ) : (
+                heroHeading
+              )}
             </h1>
 
             {/* Subtitle */}
             <p className="text-base sm:text-lg text-slate-300 font-normal leading-relaxed max-w-xl mb-8">
-              From creative ideas to powerful digital solutions, GJ Devloper transforms businesses through modern web development.
+              {heroSubtitle}
             </p>
 
             {/* CTA Buttons */}

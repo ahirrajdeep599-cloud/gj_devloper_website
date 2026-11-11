@@ -12,9 +12,10 @@ import {
   Terminal,
   MessageSquare
 } from "lucide-react";
-import { getWhatsAppDirectUrl } from "@/lib/whatsapp";
+import { useSiteSettings } from "@/context/SiteSettingsContext";
 
 export default function Footer() {
+  const { settings, getWhatsAppUrl } = useSiteSettings();
   const [timeIST, setTimeIST] = useState("");
   const [timeUTC, setTimeUTC] = useState("");
 
@@ -49,9 +50,13 @@ export default function Footer() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const whatsappHref = getWhatsAppDirectUrl(
-    "Hi GJ Devloper, I visited your website and would like to discuss a web development project."
+  const whatsappHref = getWhatsAppUrl(
+    `Hi ${settings.agency_name || "GJ Devloper"}, I visited your website and would like to discuss a web development project.`
   );
+  const contactEmail = settings.contact_email || "contact@gjdevloper.com";
+  const githubUrl = settings.social_github || "https://github.com";
+  const twitterUrl = settings.social_twitter || "https://twitter.com";
+  const linkedinUrl = settings.social_linkedin || "https://linkedin.com";
 
   return (
     <footer className="relative bg-[#02050e] border-t border-white/[0.08] pt-20 pb-12 overflow-hidden text-slate-300">
@@ -72,7 +77,7 @@ export default function Footer() {
               </div>
               <div className="flex flex-col">
                 <span className="text-xl font-bold tracking-tight text-white">
-                  GJ Devloper
+                  {settings.agency_name || "GJ Devloper"}
                 </span>
                 <span className="text-[10px] font-mono tracking-widest text-slate-400 uppercase">
                   Professional Web Development Agency
@@ -81,7 +86,8 @@ export default function Footer() {
             </Link>
 
             <p className="text-slate-400 text-sm leading-relaxed max-w-md">
-              We design and engineer bespoke business websites, high-conversion e-commerce, restaurant & hotel portals, QR menus, and custom web applications for ambitious brands.
+              {settings.footer_tagline ||
+                "We design and engineer bespoke business websites, high-conversion e-commerce, restaurant & hotel portals, QR menus, and custom web applications for ambitious brands."}
             </p>
 
             <div className="flex items-center gap-3">
@@ -98,7 +104,7 @@ export default function Footer() {
 
               {/* GitHub */}
               <a
-                href="https://github.com"
+                href={githubUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="w-10 h-10 rounded-xl bg-slate-900/70 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-sky-400/50 hover:bg-slate-800 transition-all"
@@ -111,7 +117,7 @@ export default function Footer() {
 
               {/* X / Twitter */}
               <a
-                href="https://twitter.com"
+                href={twitterUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="w-10 h-10 rounded-xl bg-slate-900/70 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-sky-400/50 hover:bg-slate-800 transition-all"
@@ -124,7 +130,7 @@ export default function Footer() {
 
               {/* LinkedIn */}
               <a
-                href="https://linkedin.com"
+                href={linkedinUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="w-10 h-10 rounded-xl bg-slate-900/70 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-sky-400/50 hover:bg-slate-800 transition-all"
@@ -137,7 +143,7 @@ export default function Footer() {
 
               {/* Email */}
               <a
-                href="mailto:contact@gjdevloper.com"
+                href={`mailto:${contactEmail}`}
                 className="w-10 h-10 rounded-xl bg-slate-900/70 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-sky-400/50 hover:bg-slate-800 transition-all"
                 aria-label="Email Agency"
               >

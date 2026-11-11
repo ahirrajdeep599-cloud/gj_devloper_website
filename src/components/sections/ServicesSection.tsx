@@ -5,7 +5,7 @@ import SectionHeader from "@/components/ui/SectionHeader";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import { gjServices } from "@/data/services";
-import { getWhatsAppDirectUrl } from "@/lib/whatsapp";
+import { useSiteSettings } from "@/context/SiteSettingsContext";
 import { 
   Briefcase, 
   ShoppingBag, 
@@ -23,21 +23,43 @@ import {
 } from "lucide-react";
 
 export default function ServicesSection() {
+  const { services: apiServices, getWhatsAppUrl } = useSiteSettings();
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
+
+  const normalizedServices = (apiServices && apiServices.length > 0 ? apiServices : gjServices).map((s) => ({
+    id: s.id,
+    number: s.number,
+    title: s.title,
+    category: s.category,
+    shortDescription:
+      ("short_description" in s && s.short_description) ||
+      ("shortDescription" in s && s.shortDescription) ||
+      "",
+    deliverables: Array.isArray(s.deliverables) ? s.deliverables : [],
+    startingPrice:
+      ("starting_price" in s && s.starting_price) ||
+      ("startingPrice" in s && s.startingPrice) ||
+      "",
+    iconType:
+      ("icon_type" in s && s.icon_type) ||
+      ("iconType" in s && s.iconType) ||
+      "Briefcase",
+    badge: s.badge || "Service",
+    whatsappPreset:
+      ("whatsapp_preset" in s && s.whatsapp_preset) ||
+      ("whatsappPreset" in s && s.whatsappPreset) ||
+      `Hi, I'm interested in ${s.title}.`,
+  }));
 
   const categories = [
     "All",
-    "Websites",
-    "E-Commerce",
-    "Hospitality & Dining",
-    "Enterprise Systems",
-    "Optimization",
+    ...Array.from(new Set(normalizedServices.map((s) => s.category).filter(Boolean))),
   ];
 
   const filteredServices =
     selectedCategory === "All"
-      ? gjServices
-      : gjServices.filter((s) => s.category === selectedCategory);
+      ? normalizedServices
+      : normalizedServices.filter((s) => s.category === selectedCategory);
 
   const getServiceIcon = (iconType: string) => {
     switch (iconType) {
@@ -101,7 +123,7 @@ export default function ServicesSection() {
         {/* 10 Services Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {filteredServices.map((service) => {
-            const whatsappUrl = getWhatsAppDirectUrl(service.whatsappPreset);
+            const whatsappUrl = getWhatsAppUrl(service.whatsappPreset);
 
             return (
               <div

@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import SectionHeader from "@/components/ui/SectionHeader";
 import Button from "@/components/ui/Button";
-import { formatWhatsAppInquiryMessage, getWhatsAppDirectUrl } from "@/lib/whatsapp";
+import { formatWhatsAppInquiryMessage } from "@/lib/whatsapp";
+import { useSiteSettings } from "@/context/SiteSettingsContext";
 import { 
   Mail, 
   MessageSquare, 
@@ -22,6 +23,9 @@ export default function ContactSection({
   initialMessage = "",
   initialService = "Business Website Development"
 }: ContactSectionProps) {
+  const { settings, getWhatsAppUrl } = useSiteSettings();
+  const contactEmail = settings.contact_email || "contact@gjdevloper.com";
+  const agencyName = settings.agency_name || "GJ Devloper";
   const [formData, setFormData] = useState({
     name: "",
     whatsappNumber: "",
@@ -81,7 +85,7 @@ export default function ContactSection({
       source: "GJ Devloper Inquiry Portal",
     });
 
-    const waDirectUrl = getWhatsAppDirectUrl(formattedMessage);
+    const waDirectUrl = getWhatsAppUrl(formattedMessage);
     setLastSubmittedWhatsAppUrl(waDirectUrl);
 
     try {
@@ -170,7 +174,7 @@ export default function ContactSection({
             {/* Direct Contact Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <a
-                href={getWhatsAppDirectUrl("Hi GJ Devloper, I would like to speak with an engineer about a website project.")}
+                href={getWhatsAppUrl(`Hi ${agencyName}, I would like to speak with an engineer about a website project.`)}
                 target="_blank"
                 rel="noreferrer"
                 className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 hover:bg-emerald-500 hover:text-slate-950 transition-all group shadow-[0_0_20px_rgba(16,185,129,0.15)]"
@@ -184,12 +188,12 @@ export default function ContactSection({
                   </span>
                 </div>
                 <span className="text-sm font-semibold text-white group-hover:text-slate-950 block">
-                  Click to Chat Now →
+                  {settings.contact_phone || "Click to Chat Now →"}
                 </span>
               </a>
 
               <a
-                href="mailto:contact@gjdevloper.com"
+                href={`mailto:${contactEmail}`}
                 className="p-5 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-sky-500/40 hover:bg-slate-900/60 transition-all group"
               >
                 <div className="flex items-center gap-3 mb-2">
@@ -199,7 +203,7 @@ export default function ContactSection({
                   <span className="text-xs font-mono text-slate-400">Direct Email</span>
                 </div>
                 <span className="text-sm font-semibold text-white group-hover:text-sky-300">
-                  contact@gjdevloper.com
+                  {contactEmail}
                 </span>
               </a>
             </div>

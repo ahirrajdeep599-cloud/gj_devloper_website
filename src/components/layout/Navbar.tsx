@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Menu, X, ArrowRight, ShoppingBag } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { useCart } from "@/context/CartContext";
+import { useSiteSettings } from "@/context/SiteSettingsContext";
 
 interface NavbarProps {
   onOpenContactModal?: () => void;
@@ -14,6 +15,7 @@ export default function Navbar({}: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { totalItems } = useCart();
+  const { settings } = useSiteSettings();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -61,7 +63,7 @@ export default function Navbar({}: NavbarProps) {
               </div>
               <div className="flex flex-col">
                 <span className="text-lg font-bold tracking-tight text-white flex items-center gap-1.5">
-                  GJ Devloper
+                  {settings.agency_name || "GJ Devloper"}
                   <span className="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-sky-400 shadow-[0_0_8px_#38bdf8] animate-pulse" />
                 </span>
                 <span className="text-[10px] font-mono tracking-widest text-slate-400 uppercase -mt-0.5">

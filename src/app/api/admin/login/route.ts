@@ -3,6 +3,7 @@ import db from "@/lib/db";
 import bcrypt from "bcryptjs";
 import { signSessionToken, COOKIE_NAME } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rateLimit";
+import { getSupabaseAdmins } from "@/lib/supabaseCatalog";
 
 export const dynamic = "force-dynamic";
 
@@ -51,16 +52,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Query database with parameterized statement
+    const cleanUser = username.trim();
+
     interface AdminRow {
       id: number;
       username: string;
+      email?: string;
       password_hash: string;
     }
 
-    const admin = db
-      .prepare("SELECT * FROM admins WHERE username = ? OR email = ?")
-      .get(username.trim(), username.trim()) as AdminRow | undefined;
+    let admin: AdminRow | undefined;
+
+    const sbAdmins = await getSupabaseAdmins();
+    if (sbAdmins && sbAdmins.length > 0) {
+      admin = sbAdmins.find((a) => a.username === cleanUser || a.email === cleanUser);
+    } else {
+      admin = db
+        .prepare("SELECT * FROM admins WHERE username = ? OR email = ?")
+        .get(cleanUser, cleanUser) as AdminRow | undefined;
+    }
 
     // Use actual hash if admin exists, otherwise use dummy hash to avoid timing attacks
     const targetHash = admin ? admin.password_hash : DUMMY_HASH;

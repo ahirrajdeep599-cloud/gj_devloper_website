@@ -5,8 +5,8 @@ import SectionHeader from "@/components/ui/SectionHeader";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import ProjectModal from "@/components/sections/ProjectModal";
-import { sampleProjectsData, PortfolioSampleProject } from "@/data/projects";
-import { getWhatsAppDirectUrl } from "@/lib/whatsapp";
+import { sampleProjectsData } from "@/data/projects";
+import { useSiteSettings, PortfolioItem } from "@/context/SiteSettingsContext";
 import { 
   ArrowUpRight, 
   MessageSquare, 
@@ -21,22 +21,62 @@ import {
 } from "lucide-react";
 
 export default function ProjectsSection() {
+  const { projects: apiProjects, getWhatsAppUrl } = useSiteSettings();
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
-  const [activeModalProject, setActiveModalProject] = useState<PortfolioSampleProject | null>(null);
+  const [activeModalProject, setActiveModalProject] = useState<PortfolioItem | null>(null);
+
+  const normalizedProjects: PortfolioItem[] = (
+    apiProjects && apiProjects.length > 0 ? apiProjects : sampleProjectsData
+  ).map((p) => {
+    const rawMetrics = Array.isArray(p.metrics) && p.metrics.length > 0
+      ? p.metrics
+      : [{ value: "100%", label: "Custom Built" }];
+    const rawTechStack = Array.isArray(p.techStack)
+      ? p.techStack
+      : "tech_stack" in p && Array.isArray(p.tech_stack)
+      ? p.tech_stack
+      : [];
+
+    return {
+      ...p,
+      clientBadge:
+        p.clientBadge ||
+        ("client_badge" in p && p.client_badge) ||
+        "Sample Showcase",
+      serviceCategory:
+        p.serviceCategory ||
+        ("service_category" in p && p.service_category) ||
+        "Custom Web Apps",
+      sampleNotice:
+        p.sampleNotice ||
+        ("sample_notice" in p && p.sample_notice) ||
+        "Sample demonstration architecture",
+      metrics: rawMetrics,
+      techStack: rawTechStack,
+      gradient:
+        p.gradient || "from-blue-600/30 via-indigo-600/20 to-purple-600/30",
+      previewMockupType:
+        p.previewMockupType ||
+        ("preview_type" in p && p.preview_type) ||
+        "webapp",
+      whatsappPrompt:
+        p.whatsappPrompt ||
+        ("whatsapp_prompt" in p && p.whatsapp_prompt) ||
+        `Hi, I'm interested in a project like ${p.title}.`,
+    };
+  });
 
   const categories = [
     "All",
-    "Restaurant & QR",
-    "Hotel & Hospitality",
-    "E-Commerce",
-    "Custom Web Apps",
-    "Brand Portfolios",
+    ...Array.from(
+      new Set(normalizedProjects.map((p) => p.serviceCategory).filter(Boolean) as string[])
+    ),
   ];
 
   const filteredProjects =
     selectedCategory === "All"
-      ? sampleProjectsData
-      : sampleProjectsData.filter((p) => p.serviceCategory === selectedCategory);
+      ? normalizedProjects
+      : normalizedProjects.filter((p) => p.serviceCategory === selectedCategory);
 
   const getCategoryIcon = (type: string) => {
     switch (type) {
@@ -102,7 +142,8 @@ export default function ProjectsSection() {
         {/* Projects Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
           {filteredProjects.map((project) => {
-            const whatsappUrl = getWhatsAppDirectUrl(project.whatsappPrompt);
+            const whatsappUrl = getWhatsAppUrl(project.whatsappPrompt || "");
+            const firstMetric = project.metrics?.[0] || { value: "100%", label: "Custom" };
 
             return (
               <div
@@ -129,7 +170,7 @@ export default function ProjectsSection() {
                   {/* Center Visual Mockup Accent */}
                   <div className="relative z-10 flex items-center gap-4 my-auto">
                     <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform duration-300">
-                      {getCategoryIcon(project.previewMockupType)}
+                      {getCategoryIcon(project.previewMockupType || "webapp")}
                     </div>
                     <div>
                       <div className="text-xl sm:text-2xl font-black text-white font-sans tracking-tight">
@@ -145,10 +186,10 @@ export default function ProjectsSection() {
                   <div className="relative z-10 flex items-center justify-between">
                     <div className="p-3 rounded-xl bg-black/60 border border-white/10 backdrop-blur-md">
                       <span className="text-xl font-black text-white font-mono text-gradient-electric">
-                        {project.metrics[0].value}
+                        {firstMetric.value}
                       </span>
                       <span className="text-[11px] text-slate-300 font-mono ml-2">
-                        {project.metrics[0].label}
+                        {firstMetric.label}
                       </span>
                     </div>
 
@@ -178,7 +219,7 @@ export default function ProjectsSection() {
                   {/* Tech Tags & Actions */}
                   <div className="pt-4 border-t border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="flex flex-wrap gap-1.5">
-                      {project.techStack.slice(0, 3).map((tag) => (
+                      {(project.techStack || []).slice(0, 3).map((tag) => (
                         <span
                           key={tag}
                           className="px-2.5 py-1 rounded-lg bg-white/[0.04] border border-white/5 text-xs font-mono text-slate-400"

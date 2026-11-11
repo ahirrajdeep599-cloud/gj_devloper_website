@@ -3,6 +3,7 @@
 import React from "react";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
+import { useSiteSettings } from "@/context/SiteSettingsContext";
 import { 
   Code2, 
   Cpu, 
@@ -13,6 +14,10 @@ import {
 } from "lucide-react";
 
 export default function AboutSection() {
+  const { settings } = useSiteSettings();
+  const aboutHeading = settings.about_heading || "MORE THAN JUST A WEBSITE. WE BUILD DIGITAL SOLUTIONS.";
+  const isDefaultAboutHeading = aboutHeading.trim() === "MORE THAN JUST A WEBSITE. WE BUILD DIGITAL SOLUTIONS.";
+  const aboutDescription = settings.about_description;
   const pillars = [
     {
       title: "Clean, Scalable Architecture",
@@ -51,14 +56,24 @@ export default function AboutSection() {
             </Badge>
 
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-[1.15] tracking-tight">
-              MORE THAN JUST A WEBSITE.{" "}
-              <span className="text-gradient-electric block mt-1">
-                WE BUILD DIGITAL SOLUTIONS.
-              </span>
+              {isDefaultAboutHeading ? (
+                <>
+                  MORE THAN JUST A WEBSITE.{" "}
+                  <span className="text-gradient-electric block mt-1">
+                    WE BUILD DIGITAL SOLUTIONS.
+                  </span>
+                </>
+              ) : (
+                aboutHeading
+              )}
             </h2>
 
             <p className="text-base text-slate-300 leading-relaxed">
-              At <strong className="text-white">GJ Devloper</strong>, we believe modern businesses deserve more than cookie-cutter templates that slow down browsers and fail to convert. We are a specialized web development studio focused on crafting high-performance, responsive, and functional digital experiences.
+              {aboutDescription || (
+                <>
+                  At <strong className="text-white">GJ Devloper</strong>, we believe modern businesses deserve more than cookie-cutter templates that slow down browsers and fail to convert. We are a specialized web development studio focused on crafting high-performance, responsive, and functional digital experiences.
+                </>
+              )}
             </p>
 
             <p className="text-sm text-slate-400 leading-relaxed">

@@ -23,7 +23,7 @@ export default function StorePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [addedIds, setAddedIds] = useState<{ [key: number]: boolean }>({});
+  const [addedIds, setAddedIds] = useState<{ [key: string]: boolean }>({});
 
   const { addToCart, totalItems } = useCart();
   const { getWhatsAppUrl } = useSiteSettings();
@@ -31,7 +31,7 @@ export default function StorePage() {
   useEffect(() => {
     async function loadProducts() {
       try {
-        const res = await fetch("/api/products");
+        const res = await fetch("/api/products", { cache: "no-store" });
         const data = await res.json();
         if (data.success && Array.isArray(data.products)) {
           setProducts(data.products);

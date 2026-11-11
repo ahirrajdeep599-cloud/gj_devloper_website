@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from "@/lib/db";
 import { getCurrentAdmin } from "@/lib/auth";
+import { getSupabaseInquiries, saveSupabaseInquiries } from "@/lib/supabaseCatalog";
 
 export const dynamic = "force-dynamic";
 
@@ -23,15 +24,39 @@ export async function PATCH(
       if (!allowed.includes(status)) {
         return NextResponse.json({ error: "Invalid status value" }, { status: 400 });
       }
-      db.prepare(
-        "UPDATE inquiries SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?"
-      ).run(status, id);
+    }
+
+    const sbInquiries = await getSupabaseInquiries();
+    if (sbInquiries) {
+      const idx = sbInquiries.findIndex((i) => String(i.id) === String(id));
+      if (idx === -1) {
+        return NextResponse.json({ error: "Inquiry not found" }, { status: 404 });
+      }
+      const existing = sbInquiries[idx];
+      const updated = {
+        ...existing,
+        ...(status ? { status } : {}),
+        ...(notes !== undefined ? { notes } : {}),
+        updated_at: new Date().toISOString(),
+      };
+      const nextList = [...sbInquiries];
+      nextList[idx] = updated;
+      await saveSupabaseInquiries(nextList);
+      return NextResponse.json({ success: true, inquiry: updated });
+    }
+
+    if (status) {
+      db.prepare("UPDATE inquiries SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?").run(
+        status,
+        id
+      );
     }
 
     if (notes !== undefined) {
-      db.prepare(
-        "UPDATE inquiries SET notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?"
-      ).run(notes, id);
+      db.prepare("UPDATE inquiries SET notes = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?").run(
+        notes,
+        id
+      );
     }
 
     const updated = db.prepare("SELECT * FROM inquiries WHERE id = ?").get(id);
@@ -53,6 +78,12 @@ export async function DELETE(
   const { id } = await params;
 
   try {
+    const sbInquiries = await getSupabaseInquiries();
+    if (sbInquiries) {
+      await saveSupabaseInquiries(sbInquiries.filter((i) => String(i.id) !== String(id)));
+      return NextResponse.json({ success: true, message: "Inquiry deleted" });
+    }
+
     db.prepare("DELETE FROM inquiries WHERE id = ?").run(id);
     return NextResponse.json({ success: true, message: "Inquiry deleted" });
   } catch {

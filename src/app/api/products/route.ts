@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
+import { getSupabaseAdmin } from "@/lib/supabaseServer";
+import { formatSupabaseProduct, SupabaseProductRow } from "@/lib/supabaseCatalog";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +25,26 @@ interface DBProductRow {
 
 export async function GET() {
   try {
+    const sb = getSupabaseAdmin();
+    if (sb) {
+      const { data, error } = await sb
+        .from("products")
+        .select("*, categories(name, slug)")
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true })
+        .order("created_at", { ascending: true });
+
+      if (!error && Array.isArray(data)) {
+        return NextResponse.json(
+          {
+            success: true,
+            products: data.map((p) => formatSupabaseProduct(p as SupabaseProductRow)),
+          },
+          { headers: { "Cache-Control": "no-store, max-age=0" } }
+        );
+      }
+    }
+
     const products = db
       .prepare("SELECT * FROM products ORDER BY sort_order ASC, id ASC")
       .all() as DBProductRow[];
@@ -32,7 +54,10 @@ export async function GET() {
       features: typeof p.features === "string" ? JSON.parse(p.features) : p.features || [],
     }));
 
-    return NextResponse.json({ success: true, products: formatted });
+    return NextResponse.json(
+      { success: true, products: formatted },
+      { headers: { "Cache-Control": "no-store, max-age=0" } }
+    );
   } catch (error) {
     console.error("Failed to fetch products:", error);
     return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
